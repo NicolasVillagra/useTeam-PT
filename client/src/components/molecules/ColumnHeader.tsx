@@ -1,0 +1,26 @@
+import React from 'react';
+import Tag from '@/src/components/atoms/Tag';
+
+export interface ColumnHeaderProps {
+  title: string;
+  count?: number;
+  onEdit?: () => void;
+}
+
+export const ColumnHeader: React.FC<ColumnHeaderProps> = ({ title, count = 0, onEdit }) => {
+  return (
+    <div className="flex items-center justify-between p-2">
+      <div className="flex items-center gap-2">
+        <h2 className="font-semibold text-sm">{title}</h2>
+        <Tag text={String(count)} color="neutral" />
+      </div>
+      {onEdit && (
+        <button className="btn btn-xs btn-ghost" onClick={onEdit} title="Editar columna">
+          ✏️
+        </button>
+      )}
+    </div>
+  );
+};
+
+export default ColumnHeader;
