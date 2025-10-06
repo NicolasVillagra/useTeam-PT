@@ -1,5 +1,6 @@
 import React from 'react';
 import Tag from '@/src/components/atoms/Tag';
+import Button from '../atoms/Button';
 
 export interface ColumnHeaderProps {
   title: string;
@@ -15,9 +16,9 @@ export const ColumnHeader: React.FC<ColumnHeaderProps> = ({ title, count = 0, on
         <Tag text={String(count)} color="neutral" />
       </div>
       {onEdit && (
-        <button className="btn btn-xs btn-ghost" onClick={onEdit} title="Editar columna">
-          ✏️
-        </button>
+        <Button className="btn btn-xs btn-ghost" onClick={onEdit} title="Editar columna">
+          Editar Columna
+        </Button>
       )}
     </div>
   );

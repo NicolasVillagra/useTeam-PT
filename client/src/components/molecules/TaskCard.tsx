@@ -3,6 +3,7 @@ import Tag from '@/src/components/atoms/Tag';
 import { Draggable } from '@hello-pangea/dnd';
 import type { DraggableProvided } from '@hello-pangea/dnd';
 import type { Task } from '@/src/utils/types';
+import Button from '../atoms/Button';
 
 export interface TaskCardProps {
   task: Task;
@@ -29,9 +30,9 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, index, onEdit }) => {
             </div>
             {onEdit && (
               <div className="flex justify-end">
-                <button className="btn btn-ghost btn-xs" title="Editar tarea" onClick={(e) => { e.stopPropagation(); onEdit(task); }}>
-                  ✏️
-                </button>
+                <Button className="btn btn-ghost btn-xs" title="Editar tarea" onClick={(e) => { e.stopPropagation(); onEdit(task); }}>
+                  Editar
+                </Button>
               </div>
             )}
             {task.tags?.length ? (

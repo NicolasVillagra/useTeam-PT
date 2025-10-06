@@ -71,7 +71,11 @@ export const useTasks = () => {
     setTasks((prev) => ({ ...prev, [mapped.id]: mapped }));
     setColumns((prev) => {
       const col = prev[mapped.columnId] || { id: mapped.columnId, title: mapped.columnId, taskIds: [] };
-      return { ...prev, [mapped.columnId]: { ...col, taskIds: [...col.taskIds, mapped.id] } };
+      const alreadyInColumn = col.taskIds.includes(mapped.id);
+      return {
+        ...prev,
+        [mapped.columnId]: { ...col, taskIds: alreadyInColumn ? col.taskIds : [...col.taskIds, mapped.id] },
+      };
     });
     emitEvent({ event: 'taskCreated', payload: mapped });
     return mapped;
@@ -140,7 +144,11 @@ export const useTasks = () => {
       setTasks((prev) => ({ ...prev, [t.id]: t }));
       setColumns((prev) => {
         const col = prev[t.columnId] || { id: t.columnId, title: t.columnId, taskIds: [] };
-        return { ...prev, [t.columnId]: { ...col, taskIds: [...col.taskIds, t.id] } };
+        const alreadyInColumn = col.taskIds.includes(t.id);
+        return {
+          ...prev,
+          [t.columnId]: { ...col, taskIds: alreadyInColumn ? col.taskIds : [...col.taskIds, t.id] },
+        };
       });
     };
     const onUpdated = (raw: any) => {
