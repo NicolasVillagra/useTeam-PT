@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Body, Param } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, HttpException, HttpStatus } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import { RealtimeGateway } from '../../realtime.gateway';
 
@@ -7,28 +7,48 @@ export class TasksController {
   constructor(private service: TasksService, private gateway: RealtimeGateway) {}
 
   @Get()
-  findAll() {
-    return this.service.findAll();
+  async findAll() {
+    try {
+      return await this.service.findAll();
+    } catch (error) {
+      // Los errores del service ya están formateados correctamente
+      throw error;
+    }
   }
 
   @Post()
   async create(@Body() body) {
-    const task = await this.service.create(body);
-    this.gateway.server.emit('taskCreated', task);
-    return task;
+    try {
+      const task = await this.service.create(body);
+      this.gateway.server.emit('taskCreated', task);
+      return task;
+    } catch (error) {
+      // Los errores del service ya están formateados correctamente
+      throw error;
+    }
   }
 
   @Put(':id')
   async update(@Param('id') id: string, @Body() body) {
-    const task = await this.service.update(id, body);
-    this.gateway.server.emit('taskUpdated', task);
-    return task;
+    try {
+      const task = await this.service.update(id, body);
+      this.gateway.server.emit('taskUpdated', task);
+      return task;
+    } catch (error) {
+      // Los errores del service ya están formateados correctamente
+      throw error;
+    }
   }
 
   @Delete(':id')
   async remove(@Param('id') id: string) {
-    const result = await this.service.remove(id);
-    this.gateway.server.emit('taskRemoved', id);
-    return result;
+    try {
+      const result = await this.service.remove(id);
+      this.gateway.server.emit('taskRemoved', id);
+      return result;
+    } catch (error) {
+      // Los errores del service ya están formateados correctamente
+      throw error;
+    }
   }
 }

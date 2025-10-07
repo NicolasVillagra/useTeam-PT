@@ -1,5 +1,7 @@
 version: "3.8"
+
 services:
+  # 🟢 MongoDB
   mongo:
     image: mongo:6
     container_name: kanban-mongo
@@ -10,6 +12,29 @@ services:
       MONGO_INITDB_DATABASE: kanban-board
     volumes:
       - mongo_data:/data/db
+    networks:
+      - kanban-net
+
+  # 🟣 N8N
+  n8n:
+    image: n8nio/n8n:1.106.3
+    container_name: kanban-n8n
+    restart: unless-stopped
+    ports:
+      - "5678:5678"
+    volumes:
+      - ~/.n8n:/home/node/.n8n
+    environment:
+      - N8N_BASIC_AUTH_ACTIVE=false
+      - N8N_PORT=5678
+      - N8N_SKIP_WEB_SETUP=true
+      - WEBHOOK_URL=http://kanban-n8n:5678/
+    networks:
+      - kanban-net
+
+networks:
+  kanban-net:
+    driver: bridge
 
 volumes:
   mongo_data:

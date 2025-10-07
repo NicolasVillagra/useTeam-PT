@@ -1,0 +1,78 @@
+{
+  "name": "Kanban Backlog Export (Compatible)",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "kanban-export",
+        "httpMethod": "POST",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "1",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [200, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://host.docker.internal:3001/columns",
+        "responseFormat": "json"
+      },
+      "id": "3",
+      "name": "HTTP Columns",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 2,
+      "position": [450, 420]
+    },
+    {
+      "parameters": {
+        "url": "http://host.docker.internal:3001/tasks",
+        "responseFormat": "json"
+      },
+      "id": "2",
+      "name": "HTTP Tasks",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 2,
+      "position": [650, 420]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Build CSV from HTTP Tasks + HTTP Columns and attach to email (robusto para distintas formas de respuesta)\n\n// Helper: normaliza items del HTTP (soporta: split en items, array en json, u objeto con array en propiedades comunes)\nfunction normalize(httpItems) {\n  if (!Array.isArray(httpItems) || httpItems.length === 0) return [];\n  if (httpItems.length === 1) {\n    const j = httpItems[0].json;\n    if (Array.isArray(j)) return j;\n    if (j && typeof j === 'object') {\n      const candidates = ['data','items','results','rows','list'];\n      for (const k of candidates) {\n        if (Array.isArray(j[k])) return j[k];\n      }\n    }\n  }\n  return httpItems.map(i => i.json);\n}\n\n// 1) Obtener items directamente desde los nodos origen\nconst taskItems = $items('HTTP Tasks', 0, 0);\nconst colItems  = $items('HTTP Columns', 0, 0);\n\nconst tasks = normalize(taskItems);\nconst cols  = normalize(colItems);\n\n// 2) Email desde el Webhook - con mejor manejo de errores\nconst webhookItems = $items('Webhook', 0, 0);\nlet email = 'test@example.com'; // valor por defecto\n\nif (webhookItems && webhookItems.length > 0) {\n  const webhookData = webhookItems[0].json;\n  // Intentar diferentes rutas para encontrar el email\n  email = webhookData?.body?.email || \n          webhookData?.email || \n          webhookData?.data?.email || \n          'test@example.com';\n}\n\n// 3) Mapa columnaId -> nombre\nconst colNameById = {};\nfor (const c of cols) {\n  const key = String(c._id ?? c.id ?? c.name ?? c.columnId ?? '');\n  if (!key) continue;\n  colNameById[key] = c.name ?? c.title ?? c._id ?? key;\n}\n\n// 4) CSV helpers\nconst esc = (s) => {\n  s = (s ?? '').toString();\n  return /[\"\\n,]/.test(s) ? `\"${s.replace(/\"/g,'\"\"')}\"` : s;\n};\n\nconst headers = ['id', 'title', 'description', 'column', 'createdAt'];\nconst lines = [headers.join(',')];\n\n// 5) Filas\nfor (const t of tasks) {\n  const colId = String(t.columnId ?? t.column ?? t.statusId ?? '');\n  const colName = colNameById[colId] ?? colId;\n  lines.push([\n    esc(t.id ?? t._id ?? ''),\n    esc(t.title ?? t.name ?? ''),\n    esc(t.description ?? ''),\n    esc(colName ?? ''),\n    esc(t.createdAt ?? t.created_at ?? '')\n  ].join(','));\n}\n\nconst csv = lines.join('\\n');\n\n// 6) Devolver binario para adjunto y exponer contadores para debug rápido\n// Asegurar que el email esté en el nivel raíz del JSON\nreturn [{\n  json: { \n    email: email, // Email en el nivel raíz para que {{$json.email}} funcione\n    stats: { \n      tasks: tasks.length, \n      cols: cols.length,\n      emailFound: email !== 'test@example.com'\n    } \n  },\n  binary: {\n    data: {\n      data: Buffer.from(csv).toString('base64'),\n      fileName: 'backlog.csv',\n      mimeType: 'text/csv'\n    }\n  }\n}];"
+      },
+      "id": "4",
+      "name": "Build CSV",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [850, 420]
+    },
+    {
+      "parameters": {
+        "fromEmail": "info@avantsoftware.io",
+        "toEmail": "{{$json.email}}",
+        "subject": "Backlog exportado",
+        "text": "Adjuntamos el CSV con el backlog.",
+        "attachments": "data"
+      },
+      "id": "5",
+      "name": "Send Email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 1,
+      "position": [1100, 420]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          { "node": "HTTP Columns", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "HTTP Columns": { "main": [[{ "node": "HTTP Tasks", "type": "main", "index": 0 }]] },
+    "HTTP Tasks": { "main": [[{ "node": "Build CSV", "type": "main", "index": 0 }]] },
+    "Build CSV": { "main": [[{ "node": "Send Email", "type": "main", "index": 0 }]] }
+  },
+  "settings": {},
+  "versionId": "1"
+}

@@ -36,7 +36,7 @@ export const BoardPage: React.FC = () => {
         <div className="flex items-center gap-2">
           <Button variant="secondary" onClick={createColumnModal.open}>Nueva columna</Button>
           <Button onClick={createTaskModal.open}>Nueva tarea</Button>
-          <ExportButton onClick={exportModal.open} />
+          <Button onClick={exportModal.open}>Exportar backlog</Button>
         </div>
       </div>
       <KanbanBoard state={state} onDragEnd={onDragEnd} loading={loading} />

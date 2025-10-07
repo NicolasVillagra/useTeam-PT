@@ -31,18 +31,17 @@ export const EditColumnModal: React.FC<EditColumnModalProps> = ({ isOpen, initia
   };
 
   return (
-    <div className="modal modal-open">
-      <div className="modal-box">
+    <div className="fixed inset-0 z-50 grid place-items-center bg-black/50" onClick={onClose}>
+      <div className="w-full max-w-md rounded-lg bg-base-100 p-5" onClick={(e) => e.stopPropagation()}>
         <h3 className="font-bold text-lg">Renombrar columna</h3>
         <div className="py-3">
           <Input label="Nombre" value={name} onChange={(e) => setName(e.target.value)} />
         </div>
-        <div className="modal-action">
+        <div className="flex justify-end gap-2">
           <Button variant="ghost" onClick={onClose} disabled={loading}>Cancelar</Button>
           <Button onClick={() => void handleSave()} loading={loading}>Guardar</Button>
         </div>
       </div>
-      <div className="modal-backdrop" onClick={onClose} />
     </div>
   );
 };

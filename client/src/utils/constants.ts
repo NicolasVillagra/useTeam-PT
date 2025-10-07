@@ -4,4 +4,4 @@ export const SOCKET_EVENTS = {
   TASK_DELETED: 'taskRemoved',
 } as const;
 
-export const EXPORT_ENDPOINT = '/api/export/backlog';
+export const EXPORT_ENDPOINT = '/export/backlog';

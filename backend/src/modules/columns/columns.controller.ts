@@ -7,21 +7,41 @@ export class ColumnsController {
 
   @Get()
   async findAll() {
-    return this.service.ensureDefaults();
+    try {
+      return await this.service.ensureDefaults();
+    } catch (error) {
+      // Los errores del service ya están formateados correctamente
+      throw error;
+    }
   }
 
   @Post()
-  create(@Body() body: any) {
-    return this.service.create(body);
+  async create(@Body() body: any) {
+    try {
+      return await this.service.create(body);
+    } catch (error) {
+      // Los errores del service ya están formateados correctamente
+      throw error;
+    }
   }
 
   @Put(':id')
-  update(@Param('id') id: string, @Body() body: any) {
-    return this.service.update(id, body);
+  async update(@Param('id') id: string, @Body() body: any) {
+    try {
+      return await this.service.update(id, body);
+    } catch (error) {
+      // Los errores del service ya están formateados correctamente
+      throw error;
+    }
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.service.remove(id);
+  async remove(@Param('id') id: string) {
+    try {
+      return await this.service.remove(id);
+    } catch (error) {
+      // Los errores del service ya están formateados correctamente
+      throw error;
+    }
   }
 }

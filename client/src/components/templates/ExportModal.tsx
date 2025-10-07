@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState } from 'react';
 import Button from '@/src/components/atoms/Button';
 import Input from '@/src/components/atoms/Input';
@@ -29,8 +31,8 @@ export const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose, onCon
   };
 
   return (
-    <div className="modal modal-open">
-      <div className="modal-box">
+    <div className="fixed inset-0 z-50 grid place-items-center bg-black/50" onClick={onClose}>
+      <div className="w-full max-w-md rounded-lg bg-base-100 p-5" onClick={(e) => e.stopPropagation()}>
         <h3 className="font-bold text-lg">Exportar backlog</h3>
         <p className="py-2">Ingresa el email destino para recibir el backlog exportado.</p>
         <div className="py-2">
@@ -42,12 +44,11 @@ export const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose, onCon
             onChange={(e) => setEmail(e.target.value)}
           />
         </div>
-        <div className="modal-action">
+        <div className="flex justify-end gap-2">
           <Button variant="ghost" onClick={onClose} disabled={loading}>Cancelar</Button>
           <Button onClick={() => void handleSubmit()} loading={loading}>Confirmar</Button>
         </div>
       </div>
-      <div className="modal-backdrop" onClick={onClose} />
     </div>
   );
 };
