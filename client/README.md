@@ -1,36 +1,54 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+## Frontend Kanban – Guía de Levantado
 
-## Getting Started
+Aplicación Next.js (App Router) con React 19, Tailwind v4 y socket.io-client para tiempo real.
 
-First, run the development server:
+### Requisitos
+- Node.js 18+
+- npm 9+
 
+### Variables de entorno
+El cliente consume el backend vía Axios y WebSocket:
+- `NEXT_PUBLIC_API_URL` (default: `http://localhost:3001`)
+- `NEXT_PUBLIC_WS_URL` (default: `http://localhost:3001`)
+
+Crea un archivo `.env.local` en `client/` (no se commitea):
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+NEXT_PUBLIC_API_URL=http://localhost:3001
+NEXT_PUBLIC_WS_URL=http://localhost:3001
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Instalación
+```bash
+npm install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Desarrollo
+1) Asegúrate de que el backend esté arriba y accesible en `NEXT_PUBLIC_API_URL`.
+2) Levanta el dev server:
+```bash
+npm run dev
+```
+App en `http://localhost:3000`.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Build y producción
+```bash
+npm run build
+npm run start
+```
+Por defecto, sirve en `http://localhost:3000`.
 
-## Learn More
+### Integración con backend
+- HTTP: `src/services/api.ts` crea un Axios con `NEXT_PUBLIC_API_URL`.
+- WebSocket: `src/services/socket.ts` usa `NEXT_PUBLIC_WS_URL`.
+- Eventos usados: ver `src/utils/constants.ts`.
 
-To learn more about Next.js, take a look at the following resources:
+### Estructura relevante
+- `src/components/*`: UI (atoms, molecules, organisms, templates)
+- `src/context/TasksContext.tsx`: estado de tareas y columnas
+- `src/hooks/*`: hooks de UI y datos (`useSocket`, `useTasks`, etc.)
+- `src/services/*`: clientes Axios y Socket.io
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Troubleshooting
+- CORS/404 desde API: revisa que `NEXT_PUBLIC_API_URL` apunte al backend correcto.
+- Socket no conecta: valida `NEXT_PUBLIC_WS_URL` y que el backend exponga WS.
+- Estilos no cargan: reinstala dependencias y reinicia el dev server.
