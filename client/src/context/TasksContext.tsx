@@ -15,12 +15,14 @@ interface TasksContextValue {
   updateTask: (id: string, dto: any) => Promise<any>;
   createColumn: (name: string) => Promise<void>;
   updateColumn: (id: string, name: string) => Promise<void>;
+  deleteColumn: (id: string) => Promise<void>;
+  deleteTask: (id: string) => Promise<void>;
 }
 
 const TasksContext = createContext<TasksContextValue | undefined>(undefined);
 
 export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { tasks, columns, loading, getTasks, moveTask: moveTaskHook, createTask, updateTask, createColumn, updateColumn } = useTasks();
+  const { tasks, columns, loading, getTasks, moveTask: moveTaskHook, createTask, updateTask, createColumn, updateColumn, deleteColumn, deleteTask } = useTasks();
 
   // Cargar datos al montar
   useEffect(() => { void getTasks(); }, [getTasks]);
@@ -43,8 +45,8 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, []);
 
   const value = useMemo(
-    () => ({ state, loading, moveTask, refresh, exportBacklog, createTask, updateTask, createColumn, updateColumn }),
-    [state, loading, moveTask, refresh, exportBacklog, createTask, updateTask, createColumn, updateColumn]
+    () => ({ state, loading, moveTask, refresh, exportBacklog, createTask, updateTask, createColumn, updateColumn, deleteColumn, deleteTask }),
+    [state, loading, moveTask, refresh, exportBacklog, createTask, updateTask, createColumn, updateColumn, deleteColumn, deleteTask]
   );
 
   return <TasksContext.Provider value={value}>{children}</TasksContext.Provider>;

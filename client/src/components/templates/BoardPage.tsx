@@ -18,6 +18,8 @@ export const BoardPage: React.FC = () => {
   const exportModal = useModal();
   const createColumnModal = useModal();
   const createTaskModal = useModal();
+  const totalColumns = state.columnOrder.length;
+  const totalTasks = Object.keys(state.tasks).length;
 
   const onDragEnd = useCallback(
     (result: DropResult) => {
@@ -30,20 +32,41 @@ export const BoardPage: React.FC = () => {
   );
 
   return (
-    <div className="container mx-auto p-4 flex flex-col gap-4">
-      <div className="flex items-center justify-between gap-2">
-        <h1 className="text-xl font-semibold">Tablero</h1>
-        <div className="flex items-center gap-2">
-          <Button variant="secondary" onClick={createColumnModal.open}>Nueva columna</Button>
-          <Button onClick={createTaskModal.open}>Nueva tarea</Button>
-          <Button onClick={exportModal.open}>Exportar backlog</Button>
+    <div className="min-h-screen bg-base-200/60">
+      <div className="container mx-auto p-4 flex flex-col gap-4">
+        <div className="bg-base-100/80 backdrop-blur supports-[backdrop-filter]:bg-base-100/60 border rounded-xl shadow-sm">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 p-4">
+            <div className="flex flex-col">
+              <h1 className="text-2xl font-bold tracking-tight">Tablero Kanban</h1>
+              <div className="mt-1 flex items-center gap-2 text-sm text-base-content/60">
+                <span className="inline-flex items-center gap-1 rounded-md border bg-base-100 px-2 py-0.5">{totalColumns} columnas</span>
+                <span className="inline-flex items-center gap-1 rounded-md border bg-base-100 px-2 py-0.5">{totalTasks} tareas</span>
+                {loading && <span className="inline-flex items-center gap-1 rounded-md border bg-warning/10 text-warning px-2 py-0.5">Cargando…</span>}
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button variant="secondary" onClick={createColumnModal.open}>Nueva columna</Button>
+              <Button onClick={createTaskModal.open}>Nueva tarea</Button>
+              <Button onClick={exportModal.open}>Exportar backlog</Button>
+            </div>
+          </div>
         </div>
+
+        <div className="rounded-xl border bg-base-100 shadow-sm">
+          <div className="p-3 border-b bg-base-100/60 rounded-t-xl flex items-center justify-between">
+            <span className="text-sm text-base-content/60">Arrastra y suelta para reorganizar</span>
+            <ExportButton onClick={exportModal.open} />
+          </div>
+          <div className="p-2 md:p-3 overflow-x-auto">
+            <KanbanBoard state={state} onDragEnd={onDragEnd} loading={loading} />
+          </div>
+        </div>
+
+        <ExportModal isOpen={exportModal.isOpen} onClose={exportModal.close} onConfirm={exportBacklog} />
+        <CreateColumnModal isOpen={createColumnModal.isOpen} onClose={createColumnModal.close} onCreate={createColumn} />
+        <CreateTaskModal isOpen={createTaskModal.isOpen} onClose={createTaskModal.close} onCreate={createTask} columns={state.columnOrder.map((id) => state.columns[id])} />
+        <ToastContainer position="bottom-right" autoClose={2500} hideProgressBar theme="colored" />
       </div>
-      <KanbanBoard state={state} onDragEnd={onDragEnd} loading={loading} />
-      <ExportModal isOpen={exportModal.isOpen} onClose={exportModal.close} onConfirm={exportBacklog} />
-      <CreateColumnModal isOpen={createColumnModal.isOpen} onClose={createColumnModal.close} onCreate={createColumn} />
-      <CreateTaskModal isOpen={createTaskModal.isOpen} onClose={createTaskModal.close} onCreate={createTask} columns={state.columnOrder.map((id) => state.columns[id])} />
-      <ToastContainer position="bottom-right" autoClose={2500} hideProgressBar theme="colored" />
     </div>
   );
 };

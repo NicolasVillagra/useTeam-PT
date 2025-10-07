@@ -44,7 +44,7 @@ export class TasksController {
   async remove(@Param('id') id: string) {
     try {
       const result = await this.service.remove(id);
-      this.gateway.server.emit('taskRemoved', id);
+      this.gateway.server.emit('taskDeleted', id);
       return result;
     } catch (error) {
       // Los errores del service ya están formateados correctamente

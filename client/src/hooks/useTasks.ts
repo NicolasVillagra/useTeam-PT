@@ -97,12 +97,20 @@ export const useTasks = () => {
   const createColumn = useCallback(async (name: string) => {
     await api.post('/columns', { name });
     await getTasks();
-  }, [getTasks]);
+    emitEvent({ event: 'columnCreated', payload: { name } });
+  }, [getTasks, emitEvent]);
+
+  const deleteColumn = useCallback(async (id: string) => {
+    await api.delete(`/columns/${id}`);
+    await getTasks();
+    emitEvent({ event: 'columnDeleted', payload: id });
+  }, [getTasks, emitEvent]);
 
   const updateColumn = useCallback(async (id: string, name: string) => {
     await api.put(`/columns/${id}`, { name });
     await getTasks();
-  }, [getTasks]);
+    emitEvent({ event: 'columnUpdated', payload: { id, name } });
+  }, [getTasks, emitEvent]);
 
   const moveTask = useCallback(async (taskId: string, toColumnId: string, toIndex: number) => {
 
@@ -167,16 +175,24 @@ export const useTasks = () => {
     s.on('taskUpdated', onUpdated);
     s.on('taskDeleted', onDeleted);
     s.on('taskMoved', onMoved);
+    // Column events (listen and refresh to stay consistent with backend as source of truth)
+    const onColumnChanged = () => { void getTasks(); };
+    s.on('columnCreated', onColumnChanged);
+    s.on('columnUpdated', onColumnChanged);
+    s.on('columnDeleted', onColumnChanged);
     return () => {
       s.off('taskCreated', onCreated);
       s.off('taskUpdated', onUpdated);
       s.off('taskDeleted', onDeleted);
       s.off('taskMoved', onMoved);
+      s.off('columnCreated', onColumnChanged);
+      s.off('columnUpdated', onColumnChanged);
+      s.off('columnDeleted', onColumnChanged);
     };
   }, [socket, getTasks]);
 
   const tasksList = useMemo(() => Object.values(tasks), [tasks]);
   const columnsList = useMemo(() => Object.values(columns), [columns]);
 
-  return { tasks: tasksList, columns: columnsList, loading, getTasks, createTask, updateTask, moveTask, deleteTask, createColumn, updateColumn } as const;
+  return { tasks: tasksList, columns: columnsList, loading, getTasks, createTask, updateTask, moveTask, deleteTask, createColumn, updateColumn, deleteColumn } as const;
 };

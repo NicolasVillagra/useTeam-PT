@@ -15,7 +15,7 @@ export interface KanbanColumnProps {
 }
 
 export const KanbanColumn: React.FC<KanbanColumnProps> = ({ column, tasks }) => {
-  const { updateColumn, updateTask, state } = useTasksContext();
+  const { updateColumn, updateTask, state, deleteColumn } = useTasksContext();
   const editColumnModal = useModal();
   const editTaskModal = useModal();
   const [selectedTask, setSelectedTask] = React.useState<Task | null>(null);
@@ -26,8 +26,8 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({ column, tasks }) => 
   };
 
   return (
-    <div className="w-80 shrink-0 bg-base-200 rounded-lg p-2">
-      <ColumnHeader title={column.title} count={tasks.length} onEdit={editColumnModal.open} />
+    <div className="w-80 flex flex-col gap-2 shrink-0 bg-base-200 rounded-lg p-2">
+      <ColumnHeader title={column.title} count={tasks.length} onEdit={editColumnModal.open} onDelete={() => deleteColumn(column.id)} />
       <Droppable droppableId={column.id}>
         {(provided: DroppableProvided) => (
           <div ref={provided.innerRef} {...provided.droppableProps} className="flex flex-col gap-2 min-h-[20px]">

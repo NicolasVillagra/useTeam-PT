@@ -2,7 +2,7 @@ import { useEffect, useRef, useCallback } from 'react';
 import { io, Socket } from 'socket.io-client';
 
 export interface EmitEventArgs<T = any> {
-  event: 'taskCreated' | 'taskUpdated' | 'taskMoved' | 'taskDeleted' | string;
+  event: 'taskCreated' | 'taskUpdated' | 'taskMoved' | 'taskDeleted' | 'columnCreated' | 'columnUpdated' | 'columnDeleted' | string;
   payload?: T;
 }
 

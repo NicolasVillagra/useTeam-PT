@@ -21,7 +21,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ state, onDragEnd, load
             <Spinner size="lg" />
           </div>
         )}
-        <div className="flex gap-3 overflow-x-auto p-3">
+        <div className="flex gap-5 overflow-x-auto p-3">
           {state.columnOrder.map((colId) => {
             const column = state.columns[colId];
             const tasks = column.taskIds.map((id) => state.tasks[id]).filter(Boolean);
