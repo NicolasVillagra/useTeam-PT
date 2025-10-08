@@ -47,7 +47,7 @@ export const BoardPage: React.FC = () => {
             <div className="flex items-center gap-2">
               <Button variant="secondary" onClick={createColumnModal.open}>Nueva columna</Button>
               <Button onClick={createTaskModal.open}>Nueva tarea</Button>
-              <Button onClick={exportModal.open}>Exportar backlog</Button>
+              {/* <Button onClick={exportModal.open}>Exportar backlog</Button> */}
             </div>
           </div>
         </div>
