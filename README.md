@@ -28,7 +28,7 @@ N8N_WEBHOOK_URL=http://localhost:5678/webhook/kanban-export
 Frontend (`client/.env.local`):
 ```bash
 NEXT_PUBLIC_API_URL=http://localhost:3001
-NEXT_PUBLIC_WS_URL=http://localhost:3001
+NEXT_PUBLIC_WS_URL=ws://192.168.1.2:3001
 ```
 
 > Si no configuras archivos `.env`, se usan defaults equivalentes a los de arriba.
