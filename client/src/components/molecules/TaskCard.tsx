@@ -49,7 +49,6 @@ export const TaskCard: React.FC<TaskCardProps> = ({
         >
           
           <div className="card-body p-4 gap-3">
-            {/* Header with title and priority */}
             <div className="flex items-start justify-between gap-3 min-w-0">
               <div className="flex items-start gap-2 flex-1 min-w-0">
                 <div className="flex-shrink-0 w-2 h-2 rounded-full bg-primary mt-2 opacity-60" />

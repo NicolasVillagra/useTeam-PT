@@ -10,7 +10,7 @@ Aplicación tipo Trello con columnas y tarjetas arrastrables, colaboración en t
 ---
 
 ## Requisitos
-- Node.js 18+
+- Node.js 20+
 - npm 9+
 - Docker y Docker Compose (para MongoDB y N8N en local)
 
@@ -48,6 +48,7 @@ docker compose up -d
 
 Notas sobre N8N:
 - Está configurado para desarrollo con setup simplificado, pero podría pedir autenticación según la versión/estado local. Verifica en `http://localhost:5678`. (REVISAR IMPORTANTE)
+- ACORDARSE DE LEER LAS INSTRUCCIONES DE N8N, en "toEmail" se lo debe cambiar a Expresion
 
 ---
 

@@ -3,7 +3,7 @@
 Aplicación Next.js (App Router) con React 19, Tailwind v4 y socket.io-client para tiempo real.
 
 ### Requisitos
-- Node.js 18+
+- Node.js 20+
 - npm 9+
 
 ### Variables de entorno
