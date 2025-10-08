@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Button from '@/src/components/atoms/Button';
 import Input from '@/src/components/atoms/Input';
-
+import { toast } from 'react-toastify';
 export interface EditColumnModalProps {
   isOpen: boolean;
   initialName: string;
@@ -24,7 +24,10 @@ export const EditColumnModal: React.FC<EditColumnModalProps> = ({ isOpen, initia
     try {
       setLoading(true);
       await onSave(name.trim());
+      toast.success('Columna actualizada correctamente');
       onClose();
+    } catch (error) {
+      toast.error('Error al actualizar la columna');
     } finally {
       setLoading(false);
     }

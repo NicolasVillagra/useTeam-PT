@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Button from '@/src/components/atoms/Button';
 import Input from '@/src/components/atoms/Input';
-
+import { toast } from 'react-toastify';
 export interface CreateColumnModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -21,8 +21,11 @@ export const CreateColumnModal: React.FC<CreateColumnModalProps> = ({ isOpen, on
     try {
       setLoading(true);
       await onCreate(name.trim());
+      toast.success('Columna creada correctamente');
       onClose();
       setName('');
+    } catch (error) {
+      toast.error('Error al crear la columna');
     } finally {
       setLoading(false);
     }
