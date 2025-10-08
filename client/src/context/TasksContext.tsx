@@ -8,6 +8,7 @@ import type { DropResult, DraggableLocation } from '@hello-pangea/dnd';
 interface TasksContextValue {
   state: BoardState;
   loading: boolean;
+  movingTask: boolean;
   moveTask: (taskId: string, source: DraggableLocation, destination: DraggableLocation) => void;
   refresh: () => Promise<void>;
   exportBacklog: (email?: string) => Promise<void>;
@@ -22,7 +23,7 @@ interface TasksContextValue {
 const TasksContext = createContext<TasksContextValue | undefined>(undefined);
 
 export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { tasks, columns, loading, getTasks, moveTask: moveTaskHook, createTask, updateTask, createColumn, updateColumn, deleteColumn, deleteTask } = useTasks();
+  const { tasks, columns, loading, movingTask, getTasks, moveTask: moveTaskHook, createTask, updateTask, createColumn, updateColumn, deleteColumn, deleteTask } = useTasks();
 
   // Cargar datos al montar
   useEffect(() => { void getTasks(); }, [getTasks]);
@@ -45,8 +46,8 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, []);
 
   const value = useMemo(
-    () => ({ state, loading, moveTask, refresh, exportBacklog, createTask, updateTask, createColumn, updateColumn, deleteColumn, deleteTask }),
-    [state, loading, moveTask, refresh, exportBacklog, createTask, updateTask, createColumn, updateColumn, deleteColumn, deleteTask]
+    () => ({ state, loading, movingTask, moveTask, refresh, exportBacklog, createTask, updateTask, createColumn, updateColumn, deleteColumn, deleteTask }),
+    [state, loading, movingTask, moveTask, refresh, exportBacklog, createTask, updateTask, createColumn, updateColumn, deleteColumn, deleteTask]
   );
 
   return <TasksContext.Provider value={value}>{children}</TasksContext.Provider>;

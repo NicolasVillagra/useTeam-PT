@@ -33,4 +33,5 @@ export interface UpdateTaskDto {
   columnId?: string;
   position?: number;
   tags?: string[];
+  _isMove?: boolean;
 }

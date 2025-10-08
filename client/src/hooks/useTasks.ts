@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import { api } from '@/src/services/api';
 import { useSocket } from '@/src/hooks/useSocket';
 import type { Task, CreateTaskDto, UpdateTaskDto, Column } from '@/src/utils/types';
@@ -9,6 +9,8 @@ type ColumnsMap = Record<string, Column>;
 export const useTasks = () => {
   const { socket, emitEvent } = useSocket();
   const [loading, setLoading] = useState<boolean>(false);
+  const [movingTask, setMovingTask] = useState<boolean>(false);
+  const movingTaskRef = useRef<boolean>(false);
   const [tasks, setTasks] = useState<TasksMap>({});
   const [columns, setColumns] = useState<ColumnsMap>({});
 
@@ -86,7 +88,9 @@ export const useTasks = () => {
     const mapped = mapServerTask(data);
     setTasks((prev) => ({ ...prev, [mapped.id]: mapped }));
 
-    if (dto.columnId !== undefined) {
+    // Solo refrescar si es necesario y no es un movimiento de tarea
+    // Los movimientos se manejan optimísticamente en moveTask
+    if (dto.columnId !== undefined && !dto._isMove) {
       void getTasks();
     }
     emitEvent({ event: 'taskUpdated', payload: mapped });
@@ -113,9 +117,8 @@ export const useTasks = () => {
   }, [getTasks, emitEvent]);
 
   const moveTask = useCallback(async (taskId: string, toColumnId: string, toIndex: number) => {
-
+    // Actualización optimista: actualizar la UI inmediatamente
     setColumns((prev) => {
-
       const next: ColumnsMap = Object.fromEntries(Object.entries(prev).map(([id, c]) => [id, { ...c, taskIds: c.taskIds.filter((t) => t !== taskId) }]));
       if (!next[toColumnId]) next[toColumnId] = { id: toColumnId, title: toColumnId, taskIds: [] } as Column;
       const dest = next[toColumnId];
@@ -124,11 +127,25 @@ export const useTasks = () => {
       next[toColumnId] = { ...dest, taskIds: arr };
       return next;
     });
-    setTasks((prev) => ({ ...prev, [taskId]: { ...prev[taskId], columnId: toColumnId } }));
+    setTasks((prev) => ({ ...prev, [taskId]: { ...prev[taskId], columnId: toColumnId, position: toIndex } }));
 
-    await updateTask(taskId, { columnId: toColumnId, position: toIndex });
-    emitEvent({ event: 'taskMoved', payload: { taskId, toColumnId, toIndex } });
-  }, [emitEvent, updateTask]);
+    // Actualizar en el backend en segundo plano (sin bloquear la UI)
+    setMovingTask(true);
+    movingTaskRef.current = true;
+    try {
+      await updateTask(taskId, { columnId: toColumnId, position: toIndex, _isMove: true });
+      emitEvent({ event: 'taskMoved', payload: { taskId, toColumnId, toIndex } });
+    } catch (error) {
+      // En caso de error, revertir la actualización optimista
+      console.error('Error al mover tarea:', error);
+      // Aquí podrías implementar una lógica de rollback si es necesario
+      // Por ahora, simplemente refrescamos desde el servidor
+      void getTasks();
+    } finally {
+      setMovingTask(false);
+      movingTaskRef.current = false;
+    }
+  }, [emitEvent, updateTask, getTasks]);
 
   const deleteTask = useCallback(async (id: string) => {
     await api.delete(`/tasks/${id}`);
@@ -163,13 +180,62 @@ export const useTasks = () => {
       const t = mapServerTask(raw);
       setTasks((prev) => ({ ...prev, [t.id]: t }));
 
-      void getTasks();
+      // Si es un movimiento de tarea, actualizar también las columnas optimísticamente
+      if (raw.columnId !== undefined && raw.position !== undefined) {
+        setColumns((prev) => {
+          const next = { ...prev };
+          // Remover la tarea de todas las columnas
+          Object.keys(next).forEach(colId => {
+            next[colId] = { ...next[colId], taskIds: next[colId].taskIds.filter(id => id !== t.id) };
+          });
+          // Agregar la tarea a la nueva columna en la posición correcta
+          if (!next[t.columnId]) {
+            next[t.columnId] = { id: t.columnId, title: t.columnId, taskIds: [] };
+          }
+          const dest = next[t.columnId];
+          const arr = [...dest.taskIds];
+          arr.splice(t.position, 0, t.id);
+          next[t.columnId] = { ...dest, taskIds: arr };
+          return next;
+        });
+      } else if (!movingTaskRef.current) {
+        // Solo refrescar si no es un movimiento y no estamos moviendo una tarea
+        void getTasks();
+      }
     };
     const onDeleted = (id: string) => {
       setTasks((prev) => { const { [id]: _omit, ...rest } = prev; return rest; });
       setColumns((prev) => Object.fromEntries(Object.entries(prev).map(([cid, c]) => [cid, { ...c, taskIds: c.taskIds.filter((t) => t !== id) }])));
     };
-    const onMoved = () => { void getTasks(); };
+    const onMoved = (payload: any) => { 
+      // Si no estamos moviendo una tarea nosotros mismos, aplicar la actualización optimista
+      if (!movingTaskRef.current && payload) {
+        const { taskId, toColumnId, toIndex } = payload;
+        if (taskId && toColumnId !== undefined && toIndex !== undefined) {
+          // Actualización optimista: mover la tarea visualmente
+          setColumns((prev) => {
+            const next = { ...prev };
+            // Remover la tarea de todas las columnas
+            Object.keys(next).forEach(colId => {
+              next[colId] = { ...next[colId], taskIds: next[colId].taskIds.filter(id => id !== taskId) };
+            });
+            // Agregar la tarea a la nueva columna en la posición correcta
+            if (!next[toColumnId]) {
+              next[toColumnId] = { id: toColumnId, title: toColumnId, taskIds: [] };
+            }
+            const dest = next[toColumnId];
+            const arr = [...dest.taskIds];
+            arr.splice(toIndex, 0, taskId);
+            next[toColumnId] = { ...dest, taskIds: arr };
+            return next;
+          });
+          setTasks((prev) => ({ 
+            ...prev, 
+            [taskId]: { ...prev[taskId], columnId: toColumnId, position: toIndex } 
+          }));
+        }
+      }
+    };
 
     s.on('taskCreated', onCreated);
     s.on('taskUpdated', onUpdated);
@@ -194,5 +260,5 @@ export const useTasks = () => {
   const tasksList = useMemo(() => Object.values(tasks), [tasks]);
   const columnsList = useMemo(() => Object.values(columns), [columns]);
 
-  return { tasks: tasksList, columns: columnsList, loading, getTasks, createTask, updateTask, moveTask, deleteTask, createColumn, updateColumn, deleteColumn } as const;
+  return { tasks: tasksList, columns: columnsList, loading, movingTask, getTasks, createTask, updateTask, moveTask, deleteTask, createColumn, updateColumn, deleteColumn } as const;
 };

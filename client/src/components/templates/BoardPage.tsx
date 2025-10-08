@@ -14,7 +14,7 @@ import { CreateColumnModal } from '@/src/components/templates/CreateColumnModal'
 import { CreateTaskModal } from '@/src/components/templates/CreateTaskModal';
 
 export const BoardPage: React.FC = () => {
-  const { state, loading, moveTask, exportBacklog, createColumn, createTask } = useTasksContext();
+  const { state, loading, movingTask, moveTask, exportBacklog, createColumn, createTask } = useTasksContext();
   const exportModal = useModal();
   const createColumnModal = useModal();
   const createTaskModal = useModal();
@@ -41,7 +41,7 @@ export const BoardPage: React.FC = () => {
               <div className="mt-1 flex items-center gap-2 text-sm text-base-content/60">
                 <span className="inline-flex items-center gap-1 rounded-md border bg-base-100 px-2 py-0.5">{totalColumns} columnas</span>
                 <span className="inline-flex items-center gap-1 rounded-md border bg-base-100 px-2 py-0.5">{totalTasks} tareas</span>
-                {loading && <span className="inline-flex items-center gap-1 rounded-md border bg-warning/10 text-warning px-2 py-0.5">Cargando…</span>}
+                {loading && !movingTask && <span className="inline-flex items-center gap-1 rounded-md border bg-warning/10 text-warning px-2 py-0.5">Cargando…</span>}
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -58,7 +58,7 @@ export const BoardPage: React.FC = () => {
             <ExportButton onClick={exportModal.open} />
           </div>
           <div className="p-2 md:p-3 overflow-x-auto">
-            <KanbanBoard state={state} onDragEnd={onDragEnd} loading={loading} />
+            <KanbanBoard state={state} onDragEnd={onDragEnd} loading={loading && !movingTask} />
           </div>
         </div>
 
