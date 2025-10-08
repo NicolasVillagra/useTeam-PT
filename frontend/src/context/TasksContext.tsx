@@ -28,6 +28,7 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // Cargar datos al montar
   useEffect(() => { void getTasks(); }, [getTasks]);
 
+  // Se memoiza para no recalcular si tasks o columns no cambian.
   const state: BoardState = useMemo(() => {
     const tasksMap = Object.fromEntries(tasks.map((t) => [t.id, t]));
     const columnsMap = Object.fromEntries(columns.map((c) => [c.id, c]));
@@ -45,6 +46,7 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     await api.post(EXPORT_ENDPOINT, { email });
   }, []);
 
+  // Se memoiza para no recalcular si tasks o columns no cambian.
   const value = useMemo(
     () => ({ state, loading, movingTask, moveTask, refresh, exportBacklog, createTask, updateTask, createColumn, updateColumn, deleteColumn, deleteTask }),
     [state, loading, movingTask, moveTask, refresh, exportBacklog, createTask, updateTask, createColumn, updateColumn, deleteColumn, deleteTask]

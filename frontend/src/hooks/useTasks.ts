@@ -32,6 +32,7 @@ export const useTasks = () => {
     return (data || []).map((c: any) => ({ id: String(c._id ?? c.id ?? c.name), title: String(c.name ?? c.title ?? c._id), taskIds: [] }));
   }, []);
 
+  // Construye el estado de las tareas y columnas
   const buildState = useCallback((tasksList: Task[], columnsList: Column[]) => {
     const tMap: TasksMap = {};
     const cMap: ColumnsMap = {};
@@ -39,6 +40,7 @@ export const useTasks = () => {
     for (const c of columnsList) {
       cMap[c.id] = { id: c.id, title: c.title, taskIds: [] };
     }
+    // Inicializar tareas desde backend
     for (const t of tasksList) {
       tMap[t.id] = t;
       if (!cMap[t.columnId]) {
@@ -97,7 +99,7 @@ export const useTasks = () => {
     return mapped;
   }, [emitEvent, getTasks, mapServerTask]);
 
-
+//CRUD de columnas
   const createColumn = useCallback(async (name: string) => {
     await api.post('/columns', { name });
     await getTasks();
@@ -115,6 +117,9 @@ export const useTasks = () => {
     await getTasks();
     emitEvent({ event: 'columnUpdated', payload: { id, name } });
   }, [getTasks, emitEvent]);
+
+
+  // Manejar movimientos de tareas
 
   const moveTask = useCallback(async (taskId: string, toColumnId: string, toIndex: number) => {
     // Actualización optimista: actualizar la UI inmediatamente
@@ -147,6 +152,8 @@ export const useTasks = () => {
     }
   }, [emitEvent, updateTask, getTasks]);
 
+  // Manejar eliminaciones de tareas
+
   const deleteTask = useCallback(async (id: string) => {
     await api.delete(`/tasks/${id}`);
     setTasks((prev) => {
@@ -160,7 +167,7 @@ export const useTasks = () => {
     emitEvent({ event: 'taskDeleted', payload: id });
   }, [emitEvent]);
 
-
+  // Escuchar eventos del socket
   useEffect(() => {
     const s = socket.current;
     if (!s) return;
@@ -176,6 +183,8 @@ export const useTasks = () => {
         };
       });
     };
+
+    // Manejar actualizaciones de tareas
     const onUpdated = (raw: any) => {
       const t = mapServerTask(raw);
       setTasks((prev) => ({ ...prev, [t.id]: t }));
@@ -203,10 +212,13 @@ export const useTasks = () => {
         void getTasks();
       }
     };
+
+    // Manejar eliminaciones de tareas
     const onDeleted = (id: string) => {
       setTasks((prev) => { const { [id]: _omit, ...rest } = prev; return rest; });
       setColumns((prev) => Object.fromEntries(Object.entries(prev).map(([cid, c]) => [cid, { ...c, taskIds: c.taskIds.filter((t) => t !== id) }])));
     };
+    // Manejar movimientos de tareas
     const onMoved = (payload: any) => { 
       // Si no estamos moviendo una tarea nosotros mismos, aplicar la actualización optimista
       if (!movingTaskRef.current && payload) {
@@ -237,11 +249,13 @@ export const useTasks = () => {
       }
     };
 
+    //Escuchar eventos del socket
+
     s.on('taskCreated', onCreated);
     s.on('taskUpdated', onUpdated);
     s.on('taskDeleted', onDeleted);
     s.on('taskMoved', onMoved);
-    // Column events (listen and refresh to stay consistent with backend as source of truth)
+    // Column events (escuchar y actualizar para mantener la consistencia con el backend como fuente de verdad)
     const onColumnChanged = () => { void getTasks(); };
     s.on('columnCreated', onColumnChanged);
     s.on('columnUpdated', onColumnChanged);
@@ -257,6 +271,7 @@ export const useTasks = () => {
     };
   }, [socket, getTasks]);
 
+  // Se memoiza para no recalcular si tasks o columns no cambian.
   const tasksList = useMemo(() => Object.values(tasks), [tasks]);
   const columnsList = useMemo(() => Object.values(columns), [columns]);
 
